@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+			   xmlns:mx="library://ns.adobe.com/flex/halo"
+			   xmlns:s="library://ns.adobe.com/flex/spark"
+			   xmlns:local="*"
+			   xmlns:layouts="layouts.*"
+			   viewSourceURL="http://www.flexstuff.co.uk/wp-content/uploads/examples/coverflowlayout/srcview/index.html">
+
+	<fx:Script>
+		<![CDATA[
+			import com.greensock.TweenLite;
+			import com.greensock.easing.Quart;
+
+			import mx.events.FlexEvent;
+
+			import spark.events.IndexChangeEvent;
+
+			public function scrollGroup( n : int ) : void
+			{
+				var scrollPoint : Point = coverflow.layout.getScrollPositionDeltaToElement( n );
+				var duration : Number = ( Math.max( scrollPoint.x, coverflow.layout.target.horizontalScrollPosition ) - Math.min( scrollPoint.x, coverflow.layout.target.horizontalScrollPosition )) * .002;
+				TweenLite.to( coverflow.layout, duration, { horizontalScrollPosition: scrollPoint.x });
+			}
+
+			protected function timeMachine_caretChangeHandler( event : IndexChangeEvent ) : void
+			{
+				scrollGroup( event.newIndex );
+				event.target.invalidateDisplayList();
+			}
+
+			protected function timeMachine_creationCompleteHandler() : void
+			{
+				var perspectiveProjection : PerspectiveProjection = new PerspectiveProjection();
+
+				perspectiveProjection.projectionCenter = new Point( coverflow.width * .5, coverflow.height * .5 );
+				coverflow.transform.perspectiveProjection = perspectiveProjection;
+				coverflow.transform.perspectiveProjection.fieldOfView = 20.0;
+			}
+
+			protected function showScrollBar_changeHandler( event : Event ) : void
+			{
+				coverflow.scroller.setStyle( "horizontalScrollPolicy", event.currentTarget.selected ? "on" : "off" );
+			}
+		]]>
+	</fx:Script>
+
+	<fx:Declarations>
+		<s:ArrayCollection id="collection">
+			<fx:String>H</fx:String>
+			<fx:String>A</fx:String>
+			<fx:String>P</fx:String>
+			<fx:String>P</fx:String>
+			<fx:String>Y</fx:String>
+			<fx:String> </fx:String>
+			<fx:String>E</fx:String>
+			<fx:String>A</fx:String>
+			<fx:String>S</fx:String>
+			<fx:String>T</fx:String>
+			<fx:String>E</fx:String>
+			<fx:String>R</fx:String>
+		</s:ArrayCollection>
+	</fx:Declarations>
+
+	<s:List id="coverflow"
+			itemRenderer="renderers.CoverflowPanelRenderer"
+			left="200"
+			bottom="55"
+			top="30"
+			right="30"
+			dataProvider="{collection}"
+			selectedIndex="0"
+			caretChange="timeMachine_caretChangeHandler(event)"
+			creationComplete="callLater(timeMachine_creationCompleteHandler)"
+			scroller="{null}">
+
+		<s:layout>
+			<layouts:CoverflowLayout id="coverflowLayout"
+									 distance="{ distanceSlider.value }"
+									 index="{ coverflow.selectedIndex }"
+									 stepFade="{stepFade.value}"
+									 rotation="{rotationSlider.value}" />
+		</s:layout>
+	</s:List>
+
+	<s:VGroup left="10"
+			  verticalCenter="0">
+		<s:List id="panels"
+				selectedIndex="{coverflow.selectedIndex}"
+				dataProvider="{collection}"
+				change="coverflow.selectedIndex = event.newIndex" />
+
+		<s:Label text="Index" />
+		<s:HSlider id="indexSlider"
+				   minimum="0"
+				   maximum="{collection.length - 1}"
+				   stepSize="1"
+				   liveDragging="true"
+				   value="@{ coverflow.selectedIndex }" />
+		<s:HGroup>
+			<s:Button label="Prev"
+					  enabled="{coverflow.selectedIndex > 0}"
+					  click="coverflow.selectedIndex -= 1" />
+			<s:Button label="Next"
+					  enabled="{coverflow.selectedIndex &lt; collection.length - 1}"
+					  click="coverflow.selectedIndex += 1" />
+		</s:HGroup>
+	</s:VGroup>
+
+	<s:HGroup bottom="10"
+			  horizontalCenter="0"
+			  gap="15">
+		<s:CheckBox id="showScrollBar"
+					label="Show ScrollBar"
+					selected="true"
+					change="showScrollBar_changeHandler(event)" />
+		<s:VGroup>
+			<s:Label text="Distance" />
+			<s:HSlider id="distanceSlider"
+					   minimum="1"
+					   maximum="300"
+					   value="150"
+					   liveDragging="true" />
+		</s:VGroup>
+		<s:VGroup>
+			<s:Label text="Rotation" />
+			<s:HSlider id="rotationSlider"
+					   minimum="0"
+					   maximum="100"
+					   value="70"
+					   liveDragging="true" />
+		</s:VGroup>
+		<s:VGroup>
+			<s:Label text="StepFade" />
+			<s:HSlider id="stepFade"
+					   minimum="0"
+					   maximum="1"
+					   value=".2"
+					   snapInterval=".01"
+					   liveDragging="true" />
+		</s:VGroup>
+	</s:HGroup>
+</s:Application>
